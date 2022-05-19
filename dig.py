@@ -5,14 +5,24 @@ Script que faz dig nas linhas dos arquivos "domains" dentro dos diretorios
 e escreve os IPs dos dominios
 """
 
+import threading
 import os
 import subprocess
+
+threads = []
+resfile = None
+resarr = []
 
 dirs = os.listdir()
 
 # Exemplo de como executar apenas algumas pastas:
 #dirs = ["dating"]  
 
+def parse_dig(domain):
+    print('Parsing ' + domain)
+    result = subprocess.getoutput("dig +short +answer " + domain)
+    if result:
+        resarr.append(result + "\n")
 
 for d in dirs:
 
@@ -21,17 +31,18 @@ for d in dirs:
     if d == ".git":
         continue
 
-    resfile = open('result-'+d, 'w')
-    resarr = []
-
     file = open(d + "/domains")
     lines = file.readlines()
+    resfile = open('result-'+d, 'w')
     
     for line in lines:
-        print(line)
-        result = subprocess.getoutput("dig +short +answer " + line)
-        if result:
-            resarr.append(result + "\n")
+        thread = threading.Thread(target=parse_dig, args=[line])
+        thread.start()
+        thread.name = line
+        threads.append(thread)
 
-    resfile.writelines(resarr)
-    resfile.close()
+for thread in threads:
+    thread.join()
+
+resfile.writelines(resarr)
+resfile.close()
