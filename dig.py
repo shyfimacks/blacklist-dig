@@ -11,7 +11,6 @@ import subprocess
 
 threads = []
 resfile = None
-resarr = []
 
 dirs = os.listdir()
 
@@ -22,7 +21,7 @@ def parse_dig(domain):
     print('Parsing ' + domain)
     result = subprocess.getoutput("dig +short +answer " + domain)
     if result:
-        resarr.append(result + "\n")
+        resfile.write(result + "\n")
 
 for d in dirs:
 
@@ -44,5 +43,4 @@ for d in dirs:
 for thread in threads:
     thread.join()
 
-resfile.writelines(resarr)
 resfile.close()
